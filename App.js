@@ -5,8 +5,8 @@ import { applicationId } from 'expo-application';
 import { useCallback, useEffect } from 'react';
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => {
-    console.log('Notification received');
+  handleNotification: async (n) => {
+    console.log('Notification received', n);
     return ({
       shouldPlaySound: true,
       shouldSetBadge: true,
@@ -19,14 +19,25 @@ export const usePushNotifications = () => {
 
   const test = useCallback(
     async () => {
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        console.log({ status })
+        if (status !== 'granted') {
+          await Notifications.requestPermissionsAsync();
+        }
 
-      const { status } = await Notifications.getPermissionsAsync();
-      console.log({ status })
-      if (status !== 'granted') {
-        await Notifications.requestPermissionsAsync();
+        Notifications.setNotificationChannelAsync('default', {
+          importance: Notifications.AndroidImportance.MAX,
+          lightColor: '#FF231F7C',
+          name: 'default',
+          vibrationPattern: [0, 250, 250, 250],
+        });
+
+        const pushTokenString = await Notifications.getDevicePushTokenAsync();
+        console.log(1, { pushTokenString })
+      } catch (error) {
+        console.log({ error })
       }
-      const pushTokenString = await Notifications.getDevicePushTokenAsync();
-      console.log({ pushTokenString })
     },
     [],
   );
